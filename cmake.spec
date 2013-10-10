@@ -225,26 +225,8 @@ update-mime-database %{_datadir}/mime &> /dev/null || :
 %changelog
 * Tue Oct 8 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-1
 - Update to 2.8.12 final
-
-* Tue Oct 1 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.6.rc4
-- Update to 2.8.12-rc4
-- Drop upstreamed FindHD5 patch
-
-* Thu Sep 19 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.5.rc3
-- Add patch to fix FindHDF5
-
-* Tue Sep 17 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.4.rc3
-- Update to 2.8.12-rc3
-
-* Wed Sep 4 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.3.rc2
-- Update to 2.8.12-rc2
-
-* Wed Aug 28 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.2.rc1
 - Add patch to fix FindPythonLibs issues (bug #876118)
 - Split docs into separate -doc sub-package
-
-* Mon Aug 26 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-0.1.rc1
-- Update to 2.8.12-rc1
 - Drop ImageMagick patch - not needed
 
 * Fri Jul 26 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.11.2-4
