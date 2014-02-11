@@ -12,8 +12,8 @@
 %endif
 
 Name:           cmake
-Version:        2.8.12.1
-Release:        1%{?dist}
+Version:        2.8.12.2
+Release:        2%{?dist}
 Summary:        Cross-platform make system
 
 Group:          Development/Tools
@@ -51,6 +51,16 @@ Patch6:         cmake-strict_aliasing.patch
 # Patch away .png extension in icon name in desktop file.
 # http://www.cmake.org/Bug/view.php?id=14315
 Patch7:         cmake-desktop_icon.patch
+# Remove automatic Qt module dep adding
+Patch8:         cmake-qtdeps.patch
+# Fix FindFreetype for 2.5.1+
+# http://public.kitware.com/Bug/view.php?id=14601
+Patch9:		cmake-FindFreetype.patch
+# Upstream patch to find Boost MPI library
+# http://www.cmake.org/Bug/view.php?id=14739
+# https://bugzilla.redhat.com/show_bug.cgi?id=756141
+Patch10:        cmake-boostmpi.patch
+
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:  gcc-gfortran
@@ -108,6 +118,7 @@ The %{name}-gui package contains the Qt based GUI for CMake.
 
 %prep
 %setup -q -n %{name}-%{version}%{?rcver}
+# We cannot use backups with patches to Modules as they end up being installed
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -116,6 +127,9 @@ The %{name}-gui package contains the Qt based GUI for CMake.
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
+%patch9 -p1
+%patch10 -p1
 # Setup copyright docs for main package
 mkdir _doc
 find Source Utilities -type f -iname copy\* | while read f
@@ -227,8 +241,20 @@ update-mime-database %{_datadir}/mime &> /dev/null || :
 
 
 %changelog
+* Tue Feb 11 2014 Orion Poplawski <orion@cora.nwra.com> - 2.8.12.2-2
+- Add upstream patch to find Boost MPI library (bug #756141)
+
+* Tue Jan 28 2014 Orion Poplawski <orion@cora.nwra.com> - 2.8.12.2-1
+- Update to 2.8.12.2
+
+* Wed Jan 22 2014 Orion Poplawski <orion@cora.nwra.com> - 2.8.12.1-2
+- Fix FindFreetype for 2.5.1+
+
 * Wed Nov 6 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12.1-1
 - Update to 2.8.12.1
+
+* Wed Oct 23 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-3
+- Remove UseQt4 automatic dependency adding
 
 * Thu Oct 10 2013 Orion Poplawski <orion@cora.nwra.com> - 2.8.12-2
 - Autoload cmake-mode in emacs (bug #1017779)
