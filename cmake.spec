@@ -1,8 +1,28 @@
+%global p_vendor         hhvm
+%define _name            cmake
+
+%if 0%{?p_vendor:1}
+  %global _orig_prefix   %{_prefix}
+  %global name_prefix    %{p_vendor}-
+
+  # Use the alternate locations for things.
+  %define _lib            lib 
+  %global _real_initrddir %{_initrddir}
+  %global _sysconfdir     %{_sysconfdir}/hhvm
+  %define _prefix         /opt/hhvm
+  %define _libdir         %{_prefix}/lib
+  %define _mandir         %{_datadir}/man
+%endif
+
 # Set to bcond_without or use --with bootstrap if bootstrapping a new release
 # or architecture
 %bcond_with bootstrap
 # Set to bcond_with or use --without gui to disable qt4 gui build
-%bcond_without gui
+%if 0%{?rhel} && 0%{?rhel} < 7
+  %bcond_with gui
+%else
+  %bcond_without gui
+%endif
 # Set to RC version if building RC, else %{nil}
 %define rcver %{nil}
 
@@ -11,9 +31,9 @@
 %define rpm_macros_dir %{_rpmconfigdir}/macros.d
 %endif
 
-Name:           cmake
+Name:           %{?name_prefix}%{_name}
 Version:        2.8.12.2
-Release:        2%{?dist}
+Release:        2.hhvm%{?dist}
 Summary:        Cross-platform make system
 
 Group:          Development/Tools
@@ -88,6 +108,8 @@ Requires: emacs-filesystem >= %{_emacs_version}
 # Source/kwsys/MD5.c
 # see https://fedoraproject.org/wiki/Packaging:No_Bundled_Libraries
 Provides: bundled(md5-deutsch)
+# Don't provide un-namespaced libraries inside rpm database
+AutoProv: 0
 
 %description
 CMake is used to control the software compilation process using simple 
@@ -117,7 +139,7 @@ The %{name}-gui package contains the Qt based GUI for CMake.
 
 
 %prep
-%setup -q -n %{name}-%{version}%{?rcver}
+%setup -q -n %{_name}-%{version}%{?rcver}
 # We cannot use backups with patches to Modules as they end up being installed
 %patch0 -p1
 %patch1 -p1
@@ -146,8 +168,8 @@ export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$RPM_OPT_FLAGS"
 mkdir build
 pushd build
-../bootstrap --prefix=%{_prefix} --datadir=/share/%{name} \
-             --docdir=/share/doc/%{name} --mandir=/share/man \
+../bootstrap --prefix=%{_prefix} --datadir=/share/%{_name} \
+             --docdir=/share/doc/%{_name} --mandir=/share/man \
              --%{?with_bootstrap:no-}system-libs \
              --parallel=`/usr/bin/getconf _NPROCESSORS_ONLN` \
              %{?qt_gui}
@@ -157,19 +179,21 @@ make VERBOSE=1 %{?_smp_mflags}
 %install
 pushd build
 make install DESTDIR=%{buildroot}
-find %{buildroot}/%{_datadir}/%{name}/Modules -type f | xargs chmod -x
+find %{buildroot}/%{_datadir}/%{_name}/Modules -type f | xargs chmod -x
 popd
+mkdir -p %{buildroot}%{_docdir}
+mv %{buildroot}%{_prefix}/share/doc/%{_name} %{buildroot}%{_docdir}/%{name}
 cp -a Example %{buildroot}%{_docdir}/%{name}/
-mkdir -p %{buildroot}%{_emacs_sitelispdir}/%{name}
-install -p -m 0644 Docs/cmake-mode.el %{buildroot}%{_emacs_sitelispdir}/%{name}
-%{_emacs_bytecompile} %{buildroot}%{_emacs_sitelispdir}/%{name}/cmake-mode.el
+mkdir -p %{buildroot}%{_emacs_sitelispdir}/%{_name}
+install -p -m 0644 Docs/cmake-mode.el %{buildroot}%{_emacs_sitelispdir}/%{_name}
+%{_emacs_bytecompile} %{buildroot}%{_emacs_sitelispdir}/%{_name}/cmake-mode.el
 mkdir -p %{buildroot}%{_emacs_sitestartdir}
 install -p -m 0644 %SOURCE1 %{buildroot}%{_emacs_sitestartdir}/
 # RPM macros
 install -p -m0644 -D %{SOURCE2} %{buildroot}%{rpm_macros_dir}/macros.cmake
 sed -i -e "s|@@CMAKE_VERSION@@|%{version}|" %{buildroot}%{rpm_macros_dir}/macros.cmake
 touch -r %{SOURCE2} %{buildroot}%{rpm_macros_dir}/macros.cmake
-mkdir -p %{buildroot}%{_libdir}/%{name}
+mkdir -p %{buildroot}%{_libdir}/%{_name}
 
 %if %{with gui}
 # Desktop file
@@ -211,20 +235,11 @@ update-mime-database %{_datadir}/mime &> /dev/null || :
 %{_bindir}/cpack
 %{_bindir}/ctest
 %{_datadir}/aclocal/cmake.m4
-%{_datadir}/%{name}/
-%{_mandir}/man1/ccmake.1.gz
-%{_mandir}/man1/cmake.1.gz
-%{_mandir}/man1/cmakecommands.1.gz
-%{_mandir}/man1/cmakecompat.1.gz
-%{_mandir}/man1/cmakemodules.1.gz
-%{_mandir}/man1/cmakepolicies.1.gz
-%{_mandir}/man1/cmakeprops.1.gz
-%{_mandir}/man1/cmakevars.1.gz
-%{_mandir}/man1/cpack.1.gz
-%{_mandir}/man1/ctest.1.gz
-%{_emacs_sitelispdir}/%{name}
-%{_emacs_sitestartdir}/%{name}-init.el
-%{_libdir}/%{name}/
+%{_datadir}/%{_name}/
+%{_mandir}/man1/*
+%{_emacs_sitelispdir}/%{_name}
+%{_emacs_sitestartdir}/%{_name}-init.el
+%{_libdir}/%{_name}/
 
 %files doc
 %{_docdir}/%{name}/
